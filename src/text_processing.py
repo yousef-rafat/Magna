@@ -17,7 +17,7 @@ def get_pdf_text(file_path_or_url):
         doc = fitz.open("pdf", pdf_file.read())
 
     else:
-        doc = fitz.open(pdf_file)
+        doc = fitz.open(file_path_or_url)
 
     text = ""
     for page in doc:
@@ -31,7 +31,7 @@ class TextSplitter():
         Used for splitting text into chunks with overlap between them
     """
     
-    def __init__(self, chunk_size = 1280, chunk_overlap = 320, add_start_index = False):
+    def __init__(self, chunk_size = 1200, chunk_overlap = 150, add_start_index = False):
         self.chunk_size = chunk_size
         self.overlap = chunk_size - chunk_overlap
         self.add_index = add_start_index
@@ -77,7 +77,7 @@ def get_text_from_docx(file_path_or_url):
 def read_text_file(file_path):
     """ Reads a text file from disk """
 
-    with open(file_path, "r") as file:
+    with open(file_path, "r", encoding="utf-8") as file:
         texts = [line.strip() for line in file]        
 
     return texts

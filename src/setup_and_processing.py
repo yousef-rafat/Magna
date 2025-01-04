@@ -5,7 +5,6 @@ import shutil
 import sys
 import os
 
-
 def install_required_packages():
     """Installs required packages using pip."""
     packages = [
@@ -41,7 +40,7 @@ def check_file_type(file_path):
     elif file_extension == ".docx":
         return "DOCX file"
     else:
-        print("Unkown File Type. Please choose a file with: .pdf, .doxc, .txt\n")
+        print("Unknown File Type. Please choose a file with: .pdf, .doxc, .txt\n")
         return "Unknown file type"
 
 def get_text(file_path):
@@ -65,7 +64,7 @@ def get_text(file_path):
 
 def remove_folder(folder_name: str):
 
-    folder_path = os.path.join(os.getcwd(), "data", folder_name)
+    folder_path = os.path.join(os.getcwd().split("src")[0], "data", folder_name)
 
     if not os.path.exists(folder_path):
         print(f"Incorrect folder name: '{folder_path}'")
@@ -75,7 +74,7 @@ def remove_folder(folder_name: str):
     print(f"Removed '{folder_path}' from index data.")
 
 def print_saved_documents():
-    current_dir = os.path.join(os.getcwd(), "data")
+    current_dir = os.path.join(os.getcwd().split("src")[0], "data")
 
     if os.path.exists(current_dir):
 
@@ -84,7 +83,7 @@ def print_saved_documents():
 
 def save_cached_docs(file_name = "cache.txt"):
     """ Function to save the latest retrived documents """
-    
+
     folder_path = os.path.join(os.path.expanduser('~'), "Documents")
 
     if not os.path.exists(folder_path):
@@ -94,7 +93,7 @@ def save_cached_docs(file_name = "cache.txt"):
     file_path = os.path.join(folder_path, file_name)
 
     try:
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             for doc in docs_cache:
                 f.write(doc + "\n")
         print(f"Cache successfully saved to {file_path}")
