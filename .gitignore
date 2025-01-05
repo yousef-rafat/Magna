@@ -1,3 +1,13 @@
 data
 __pycache__
 model
+
+# Build directories
+/build/
+/dist/
+/*.egg-info/
+
+# Python bytecode files
+__pycache__/
+*.pyc
+*.pyo

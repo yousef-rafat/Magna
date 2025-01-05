@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="magna",
+    name="magna-search",
     version="1.0.0",
     author="Yousef Gamaleldin",
     author_email="yrafat38@gmail.com",
