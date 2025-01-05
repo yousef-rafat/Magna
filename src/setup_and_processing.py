@@ -78,8 +78,10 @@ def print_saved_documents():
 
     if os.path.exists(current_dir):
 
-        for folder in os.listdir(current_dir):            
-            print(folder)
+        for folder in os.listdir(current_dir): 
+            folder_dir = os.path.join(current_dir, folder)
+            if os.path.isdir(folder_dir):
+                print(folder)
 
 def save_cached_docs(file_name = "cache.txt"):
     """ Function to save the latest retrived documents """

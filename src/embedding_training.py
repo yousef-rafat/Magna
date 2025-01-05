@@ -5,8 +5,6 @@ import faiss
 import math
 import os
 
-splitter = TextSplitter()
-
 index_path = os.path.join(os.getcwd().split("src")[0], "data", "index.index")
 model_path = os.path.join(os.getcwd().split("src")[0], "model")
 
@@ -61,7 +59,7 @@ def load_data(document_name: Optional[str], all_files = False):
 
     return all_splits
 
-def init_index(text: str, document_name: str):
+def init_index(text: str, document_name: str, splitter):
 
     """ init_index is meant to be ran once by the user. It initalizes the index and the embedding model that will be used.
         For the init_index function to work, it has to be passed a text string as data.
@@ -117,7 +115,7 @@ def train_and_update_index(document_name: str, do_retrain = True, all_files = Fa
     else:
         embeddings = embedding_model.encode(all_splits)
 
-        print("Training the index...")
+        print("Adding data to the index...")
         index.reset()
         index.add(embeddings)
 
@@ -132,9 +130,6 @@ def retrive_documents(query, all_splits, k = 3):
 
     query_embedding = embedding_model.encode([query])
     _, indices = index.search(query_embedding, k)
-    print(len(all_splits))
-    for ind in indices[0]:
-        print(ind)
     
     retrived_documents = [all_splits[i] for i in indices[0]]
 
@@ -158,5 +153,5 @@ def inference(query: str, text, document_name: str, k = 3, retrain = False, all_
     for i, doc in enumerate(documents):
         print(f"\n\033[1mDocument Number ({i + 1})\033[0m\n")
         print("".join(doc))
-        docs_cache.append(doc)
+        docs_cache.append(f"\nDocument Number ({i + 1})\n" + doc)
     print("\n\033[1mIf the results are irrelevant, there's a good chance the answer doesn't exist in the document.\033[0m\n")

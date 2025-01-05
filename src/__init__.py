@@ -1,14 +1,13 @@
 from setup_and_processing import install_required_packages, get_text, remove_folder, print_saved_documents, save_cached_docs
 from text_processing import find_files_from_special_folders, TextSplitter
-from embedding_training import init_index, inference, save_data
+from embedding_training import init_index, inference
 import argparse
 import os
 
 cwd = os.getcwd().split("src")[0]
 rag_dir = os.path.join(cwd, "data")
-splitter = TextSplitter()
 
-def initalize(file_path: str):
+def initalize(file_path: str, splitter):
 
     document_name = file_path.split("/")[-1].split(".")[0]
 
@@ -22,7 +21,7 @@ def initalize(file_path: str):
         print("Unsupported file extension passed. Please use PDF, DOXC, or TXT files.")
         return
 
-    init_index(text = text, document_name = document_name)
+    init_index(text = text, document_name = document_name, splitter = splitter)
 
 def main():
     parser = argparse.ArgumentParser(description = "AI Embedding Similarity Search For Documents")
@@ -36,6 +35,7 @@ def main():
     parser.add_argument("--remove", type = str, help = "Folder to remove from the index database.")
     parser.add_argument("--print", action = "store_true", help = "Print current saved documents in the index.")
     parser.add_argument("--text_size", type = int, help = "Length of the document(s) returned.")
+    parser.add_argument("--text_overlap", type = int, help = "Length of the overlap between splits.")
     parser.add_argument("-s", action = "store_true", help = "Search in the document and print the returned result.")
     parser.add_argument("--no_retrain", action = "store_true", help = "Skips retraining the index on new data, which may result in suboptimal search results.")
     parser.add_argument("--save", action = "store_true", help = "Save the latest documents displayed into a file at Documents")
@@ -45,6 +45,13 @@ def main():
 
     # Text file that stores that latest file used by the user
     current_file_path = os.path.join(os.getcwd().split("src")[0], "data", "current_file.txt")
+
+    if args.text_size:
+        if args.text_overlap:
+            splitter = TextSplitter(chunk_size = args.text_size, chunk_overlap = args.text_overlap)
+        else: splitter = TextSplitter(chunk_size = args.text_size)
+
+    else: splitter = TextSplitter()
 
     new = False
 
@@ -72,10 +79,6 @@ def main():
         else:
             find_files_from_special_folders()
 
-    if args.save:
-        if args.save_file: save_cached_docs(args.save_file)
-        else: save_cached_docs()
-
     if (not args.init) and args.s:
         if args.query:
             if current_file is None:
@@ -96,12 +99,16 @@ def main():
                 
                 inference(query = args.query, text = splitted_text, document_name = document_name, k = args.k, retrain = not args.no_retrain, all_files = args.all)
 
+                if args.save:
+                    if args.save_file: save_cached_docs(args.save_file)
+                    else: save_cached_docs()
+
     if args.init:
         if not os.path.exists(rag_dir):
             print("Initalizing the application. This may take some time.")
 
             if args.file:
-                initalize(args.file)
+                initalize(args.file, splitter = splitter)
                 if current_file.startswith('http'):
                     document_name = current_file.split("/")[-1].split(".")[0]
                     current_file = os.path.join(rag_dir, document_name)
