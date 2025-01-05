@@ -1,11 +1,12 @@
 from setup_and_processing import install_required_packages, get_text, remove_folder, print_saved_documents, save_cached_docs
-from text_processing import find_files_from_special_folders
-from embedding_training import init_index, inference
+from text_processing import find_files_from_special_folders, TextSplitter
+from embedding_training import init_index, inference, save_data
 import argparse
 import os
 
 cwd = os.getcwd().split("src")[0]
 rag_dir = os.path.join(cwd, "data")
+splitter = TextSplitter()
 
 def initalize(file_path: str):
 
@@ -39,14 +40,18 @@ def main():
     parser.add_argument("--no_retrain", action = "store_true", help = "Skips retraining the index on new data, which may result in suboptimal search results.")
     parser.add_argument("--save", action = "store_true", help = "Save the latest documents displayed into a file at Documents")
     parser.add_argument("--save_file", type = str, help = "The name of the file to be saved.")
+    parser.add_argument("-all", action = "store_true", help = "Search in all files stored and not only the last one loaded.")
     args = parser.parse_args()
 
+    # Text file that stores that latest file used by the user
     current_file_path = os.path.join(os.getcwd().split("src")[0], "data", "current_file.txt")
 
     new = False
+
     if args.file and not args.init: 
         with open(current_file_path, "w", encoding="utf-8") as f:
             f.write(args.file)
+            current_file = args.file
             new = True
 
     elif args.file and args.init: current_file = args.file
@@ -77,22 +82,19 @@ def main():
                 print("No file was given. Please try again with a file")
                 return
             else:
+
+                # To handle both URLS and local files
+                if '/' in current_file: document_name = current_file.split("/")[-1].split(".")[0]
+                elif '\\' in current_file: document_name = current_file.split("\\")[-1].split(".")[0]
+
                 if new:
-                    all_text = []
-                    for file in os.listdir(current_file):
-                        file_path = os.path.join(current_file, file)
+                    print("Creating new folder...")
+                    text = get_text(current_file)
+                    splitted_text = splitter.split_text(text)
 
-                        with open(file_path, "r", encoding = "utf-8") as f:
-                            text = [line.strip() for line in f.read()]
-                            all_text.extend(text)
-
-                    all_text = "\n".join(all_text)
-
-                else: all_text = None
-
-                document_name = current_file.split("/")[-1].split(".")[0]
+                else: splitted_text = None
                 
-                inference(query = args.query, text = all_text, document_name = document_name, k = args.k, retrain = not args.no_retrain)
+                inference(query = args.query, text = splitted_text, document_name = document_name, k = args.k, retrain = not args.no_retrain, all_files = args.all)
 
     if args.init:
         if not os.path.exists(rag_dir):
